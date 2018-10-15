@@ -1,17 +1,17 @@
 package com.example.webflux.service;
 
-import com.example.webflux.ResponseBody.ResponseBody;
 import com.example.webflux.entity.User;
 import com.example.webflux.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
-import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
@@ -24,40 +24,49 @@ public class UserService {
     @Autowired
     private Scheduler scheduler;
 
-    public Mono<ResponseBody<User>> read(String requestUserId, String path) {
+    public Mono<User> read(String requestUserId) {
         return this.findById(requestUserId)
+                .publishOn(Schedulers.parallel())
                 .flatMap(user -> user.isPresent() ?
                         Mono.just(user.get()) :
-                        Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "User Not Found")))
-                .map(user -> new ResponseBody<>(new Date(), path, HttpStatus.OK.value(), user))
-                .publishOn(Schedulers.parallel());
+                        Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "User Not Found"))
+                );
     }
 
-    public Mono<ResponseBody<User>> create(User requestUser, String path) {
+    public Flux<User> readAll() {
+        return this.findAll()
+                .publishOn(Schedulers.parallel())
+                .flatMapMany(Flux::fromIterable)
+                .switchIfEmpty(Flux.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "No User")));
+
+    }
+
+    public Mono<User> create(User requestUser) {
         return this.findById(requestUser.getUserId())
+                .publishOn(Schedulers.parallel())
                 .flatMap(user -> user.isPresent() ?
                         Mono.error(new ResponseStatusException(HttpStatus.CONFLICT, "User Already Exist")) :
-                        this.save(requestUser))
-                .map(user -> new ResponseBody<>(new Date(), path, HttpStatus.CREATED.value(), user))
-                .publishOn(Schedulers.parallel());
+                        this.save(requestUser).publishOn(Schedulers.parallel())
+                );
+
     }
 
-    public Mono<ResponseBody<User>> update(User requestUser, String path) {
+    public Mono<User> update(User requestUser) {
         return this.findById(requestUser.getUserId())
+                .publishOn(Schedulers.parallel())
                 .flatMap(user -> user.isPresent() ?
-                        this.save(requestUser) :
-                        Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "User Not Found")))
-                .map(user -> new ResponseBody<>(new Date(), path, HttpStatus.OK.value(), user))
-                .publishOn(Schedulers.parallel());
+                        this.save(requestUser).publishOn(Schedulers.parallel()) :
+                        Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "User Not Found"))
+                );
     }
 
-    public Mono<ResponseBody<String>> delete(String requestUserId, String path) {
+    public Mono<String> delete(String requestUserId) {
         return this.findById(requestUserId)
+                .publishOn(Schedulers.parallel())
                 .flatMap(user -> user.isPresent() ?
-                        this.deleteById(requestUserId) :
-                        Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "User Not Found")))
-                .map(user -> new ResponseBody<>(new Date(), path, HttpStatus.OK.value(), user))
-                .publishOn(Schedulers.parallel());
+                        this.deleteById(requestUserId).publishOn(Schedulers.parallel()) :
+                        Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "User Not Found"))
+                );
     }
 
     private Mono<Optional<User>> findById(String userId) {
@@ -75,8 +84,12 @@ public class UserService {
         });
     }
 
+    private Mono<List<User>> findAll() {
+        return async(() -> userRepository.findAll());
+    }
+
     private <T> Mono<T> async(Callable<T> callable) {
-        return Mono.fromCallable(callable).subscribeOn(scheduler).log();
+        return Mono.fromCallable(callable).subscribeOn(scheduler);
     }
 
 }
