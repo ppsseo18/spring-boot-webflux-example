@@ -18,9 +18,9 @@ public class UserRouter {
 
     @Bean
     public RouterFunction<ServerResponse> route() {
-        return RouterFunctions.route(RequestPredicates.GET("/people/{userId}"), userHandler::get)
-                .andRoute(RequestPredicates.POST("/people").and(RequestPredicates.accept(MediaType.APPLICATION_JSON)).and(RequestPredicates.contentType(MediaType.APPLICATION_JSON)), userHandler::post)
-                .andRoute(RequestPredicates.PUT("/people").and(RequestPredicates.accept(MediaType.APPLICATION_JSON)).and(RequestPredicates.contentType(MediaType.APPLICATION_JSON)), userHandler::put)
-                .andRoute(RequestPredicates.DELETE("/people/{userId}"), userHandler::delete);
+        return RouterFunctions.route(RequestPredicates.GET("/user/{userId}"), userHandler::get)
+                .andRoute(RequestPredicates.POST("/user").and(RequestPredicates.accept(MediaType.APPLICATION_JSON)).and(RequestPredicates.contentType(MediaType.APPLICATION_JSON)), userHandler::post)
+                .andRoute(RequestPredicates.PUT("/user").and(RequestPredicates.accept(MediaType.APPLICATION_JSON)).and(RequestPredicates.contentType(MediaType.APPLICATION_JSON)), userHandler::put)
+                .andRoute(RequestPredicates.DELETE("/user/{userId}"), userHandler::delete);
     }
 }
