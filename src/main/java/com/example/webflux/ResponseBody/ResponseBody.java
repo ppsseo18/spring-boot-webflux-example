@@ -17,9 +17,4 @@ public class ResponseBody<T> {
 
     T data;
 
-    public ResponseBody<T> setPath(String path) {
-        this.path = path;
-        return this;
-    }
-
 }

@@ -12,8 +12,6 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Date;
-
 @Component
 public class UserHandler {
 
@@ -25,7 +23,7 @@ public class UserHandler {
         String userId = request.pathVariable("userId");
         Mono<ResponseBody> body = userService
                 .read(userId)
-                .map(user -> new ResponseBody(new Date(), path, HttpStatus.OK.value(), user));
+                .map(user -> ResponseBodyHandler.handleResponseBody(HttpStatus.OK, path, user));
 
         return ServerResponse
                 .ok()
@@ -38,7 +36,7 @@ public class UserHandler {
         MediaType mediaType = request.headers().accept().get(0);
         Flux<ResponseBody> body = userService
                 .readAll()
-                .map(user -> new ResponseBody(new Date(), path, HttpStatus.OK.value(), user));
+                .map(user -> ResponseBodyHandler.handleResponseBody(HttpStatus.OK, path, user));
 
         return ServerResponse
                 .ok()
@@ -51,7 +49,7 @@ public class UserHandler {
         Mono<ResponseBody> body = request
                 .bodyToMono(User.class).log()
                 .flatMap(user -> userService.create(user))
-                .map(user -> new ResponseBody(new Date(), path, HttpStatus.CREATED.value(), user)).log();
+                .map(user -> ResponseBodyHandler.handleResponseBody(HttpStatus.CREATED, path, user));
 
         return ServerResponse
                 .ok()
@@ -64,7 +62,7 @@ public class UserHandler {
         Mono<ResponseBody> body = request
                 .bodyToMono(User.class)
                 .flatMap(user -> userService.update(user))
-                .map(user -> new ResponseBody(new Date(), path, HttpStatus.OK.value(), user));
+                .map(user -> ResponseBodyHandler.handleResponseBody(HttpStatus.OK, path, user));
 
         return ServerResponse
                 .ok()
@@ -77,7 +75,7 @@ public class UserHandler {
         String userId = request.pathVariable("userId");
         Mono<ResponseBody> body = userService
                 .delete(userId)
-                .map(user -> new ResponseBody(new Date(), path, HttpStatus.OK.value(), user));
+                .map(user -> ResponseBodyHandler.handleResponseBody(HttpStatus.OK, path, user));
 
         return ServerResponse
                 .ok()
