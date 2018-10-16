@@ -49,9 +49,9 @@ public class UserHandler {
     public Mono<ServerResponse> post(ServerRequest request) {
         String path = request.path();
         Mono<ResponseBody> body = request
-                .bodyToMono(User.class)
+                .bodyToMono(User.class).log()
                 .flatMap(user -> userService.create(user))
-                .map(user -> new ResponseBody(new Date(), path, HttpStatus.CREATED.value(), user));
+                .map(user -> new ResponseBody(new Date(), path, HttpStatus.CREATED.value(), user)).log();
 
         return ServerResponse
                 .ok()
