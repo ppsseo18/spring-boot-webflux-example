@@ -19,7 +19,7 @@ public class UserService {
          return userRepository.findById(requestUserId).orElse(null);
     }
 
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = true)
     public List<User> readAll() {
         return userRepository.findAll();
     }
