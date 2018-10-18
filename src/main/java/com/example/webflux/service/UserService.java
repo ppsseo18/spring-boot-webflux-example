@@ -14,24 +14,19 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Transactional(readOnly = true)
     public User read(String requestUserId) {
-        try {
-            Thread.sleep(60000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return userRepository.findById(requestUserId).orElse(null);
+         return userRepository.findById(requestUserId).orElse(null);
     }
 
+    @Transactional(readOnly = false)
     public List<User> readAll() {
         return userRepository.findAll();
-
     }
 
     @Transactional
     public User create(User requestUser) {
         return userRepository.findById(requestUser.getUserId()).isPresent() ? null : userRepository.save(requestUser);
-
     }
 
     @Transactional
