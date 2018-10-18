@@ -1,6 +1,6 @@
 package com.example.webflux.router;
 
-import com.example.webflux.config.RequestLoggingFilter;
+import com.example.webflux.filter.RequestLoggingFilter;
 import com.example.webflux.handler.UserHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package com.example.webflux.entity;
+package com.example.webflux.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
