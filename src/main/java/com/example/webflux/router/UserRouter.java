@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.server.*;
 
-
 @Configuration
 public class UserRouter {
 
@@ -28,6 +27,4 @@ public class UserRouter {
                 .filter((ServerRequest serverRequest, HandlerFunction<ServerResponse> handlerFunction) -> handlerFunction.handle(serverRequest))
                 .filter(requestLoggingFilter::filter);
     }
-
-
 }
