@@ -31,6 +31,9 @@ public class UserHandler {
     @Autowired
     private Scheduler scheduler;
 
+    @Autowired
+    private WebClient.Builder webClientBuilder;
+
     public Mono<ServerResponse> get(ServerRequest request) {
         String path = request.path();
         String userId = request.pathVariable("userId");
@@ -104,8 +107,20 @@ public class UserHandler {
                 .body(responseBodyMono, ResponseBody.class);
     }
 
-    public Mono<ServerResponse> all(ServerRequest request) {
-        return ServerResponse.ok().body(WebClient.create("http://localhost:8000")
+    public Mono<ServerResponse> proxyGet(ServerRequest request) {
+        return ServerResponse.ok().body(webClientBuilder
+                .build()
+                .get()
+                .uri("/user/{userId}", request.pathVariable("userId"))
+                .retrieve()
+                .onStatus(HttpStatus::isError, error -> Mono.error(new ResponseStatusException(error.statusCode())))
+                .bodyToMono(new ParameterizedTypeReference<ResponseBody<User>>() {})
+                .map(userResponseBody -> ResponseBody.ok(request.path(), userResponseBody.getData())), ResponseBody.class);
+    }
+
+    public Mono<ServerResponse> proxyGetAll(ServerRequest request) {
+        return ServerResponse.ok().body(webClientBuilder
+                .build()
                 .get()
                 .uri("/user")
                 .accept(MediaType.TEXT_EVENT_STREAM)
@@ -113,6 +128,47 @@ public class UserHandler {
                 .onStatus(HttpStatus::isError, error -> Mono.error(new ResponseStatusException(error.statusCode())))
                 .bodyToFlux(new ParameterizedTypeReference<ResponseBody<User>>() {})
                 .map(userResponseBody -> ResponseBody.ok(request.path(), userResponseBody.getData())), ResponseBody.class);
+    }
+
+    public Mono<ServerResponse> proxyPost(ServerRequest request) {
+        return ServerResponse.ok().body(
+                request.bodyToMono(User.class)
+                        .flatMap(requestBody -> webClientBuilder
+                            .build()
+                            .post()
+                            .uri("/user")
+                            .syncBody(requestBody)
+                            .retrieve()
+                            .onStatus(HttpStatus::isError, error -> Mono.error(new ResponseStatusException(error.statusCode())))
+                            .bodyToMono(new ParameterizedTypeReference<ResponseBody<User>>() {})
+                            .map(userResponseBody -> ResponseBody.ok(request.path(), userResponseBody.getData())))
+                , ResponseBody.class);
+    }
+
+    public Mono<ServerResponse> proxyPut(ServerRequest request) {
+        return ServerResponse.ok().body(
+                request.bodyToMono(User.class)
+                        .flatMap(requestBody -> webClientBuilder
+                                .build()
+                                .put()
+                                .uri("/user")
+                                .syncBody(requestBody)
+                                .retrieve()
+                                .onStatus(HttpStatus::isError, error -> Mono.error(new ResponseStatusException(error.statusCode())))
+                                .bodyToMono(new ParameterizedTypeReference<ResponseBody<User>>() {})
+                                .map(userResponseBody -> ResponseBody.ok(request.path(), userResponseBody.getData())))
+                , ResponseBody.class);
+    }
+
+    public Mono<ServerResponse> proxyDelete(ServerRequest request) {
+        return ServerResponse.ok().body(webClientBuilder
+                .build()
+                .delete()
+                .uri("/user/{userId}", request.pathVariable("userId"))
+                .retrieve()
+                .onStatus(HttpStatus::isError, error -> Mono.error(new ResponseStatusException(error.statusCode())))
+                .bodyToMono(new ParameterizedTypeReference<ResponseBody<String>>() {})
+                .map(responseBody -> ResponseBody.ok(request.path(), responseBody.getData())), ResponseBody.class);
     }
 
     private <T> Mono<T> async(Callable<T> callable) {
