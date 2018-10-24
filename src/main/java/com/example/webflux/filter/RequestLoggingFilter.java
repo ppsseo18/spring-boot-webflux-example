@@ -3,19 +3,18 @@ package com.example.webflux.filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.server.HandlerFilterFunction;
-import org.springframework.web.reactive.function.server.HandlerFunction;
-import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 @Component
-public class RequestLoggingFilter implements HandlerFilterFunction<ServerResponse, ServerResponse> {
+public class RequestLoggingFilter implements WebFilter {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
-    public Mono<ServerResponse> filter(ServerRequest serverRequest, HandlerFunction<ServerResponse> handlerFunction) {
-        logger.info("Handle request: " + serverRequest.headers().toString());
-        return handlerFunction.handle(serverRequest);
+    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+        logger.info("Handle request: " + exchange.getRequest().getHeaders().toString());
+        return chain.filter(exchange);
     }
 }
