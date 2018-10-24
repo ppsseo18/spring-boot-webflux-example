@@ -29,7 +29,6 @@ public class UserRouter {
                 .andRoute(RequestPredicates.POST("/proxy/user").and(RequestPredicates.accept(MediaType.APPLICATION_JSON)).and(RequestPredicates.contentType(MediaType.APPLICATION_JSON)), userHandler::proxyPost)
                 .andRoute(RequestPredicates.PUT("/proxy/user").and(RequestPredicates.accept(MediaType.APPLICATION_JSON)).and(RequestPredicates.contentType(MediaType.APPLICATION_JSON)), userHandler::proxyPut)
                 .andRoute(RequestPredicates.DELETE("/proxy//user/{userId}"), userHandler::proxyDelete)
-                .filter((ServerRequest serverRequest, HandlerFunction<ServerResponse> handlerFunction) -> handlerFunction.handle(serverRequest))
                 .filter(requestLoggingFilter::filter);
     }
 }
