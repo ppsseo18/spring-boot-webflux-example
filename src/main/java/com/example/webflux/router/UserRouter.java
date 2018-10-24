@@ -24,6 +24,7 @@ public class UserRouter {
                 .andRoute(RequestPredicates.POST("/user").and(RequestPredicates.accept(MediaType.APPLICATION_JSON)).and(RequestPredicates.contentType(MediaType.APPLICATION_JSON)), userHandler::post)
                 .andRoute(RequestPredicates.PUT("/user").and(RequestPredicates.accept(MediaType.APPLICATION_JSON)).and(RequestPredicates.contentType(MediaType.APPLICATION_JSON)), userHandler::put)
                 .andRoute(RequestPredicates.DELETE("/user/{userId}"), userHandler::delete)
+                .andRoute(RequestPredicates.GET("/all"), userHandler::all)
                 .filter((ServerRequest serverRequest, HandlerFunction<ServerResponse> handlerFunction) -> handlerFunction.handle(serverRequest))
                 .filter(requestLoggingFilter::filter);
     }

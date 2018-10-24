@@ -3,10 +3,14 @@ package com.example.webflux.handler;
 import com.example.webflux.model.ResponseBody;
 import com.example.webflux.model.User;
 import com.example.webflux.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ResponseStatusException;
@@ -19,6 +23,7 @@ import java.util.concurrent.Callable;
 
 @Component
 public class UserHandler {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private UserService userService;
@@ -46,7 +51,7 @@ public class UserHandler {
         Flux<ResponseBody> responseBodyMono = async(() -> userService.readAll())
                 .publishOn(Schedulers.parallel())
                 .flatMapMany(Flux::fromIterable)
-                .switchIfEmpty(Flux.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "No User")))
+                .switchIfEmpty(Flux.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "User Not Found")))
                 .map(user -> ResponseBody.ok(path, user));
 
         return ServerResponse
@@ -97,6 +102,17 @@ public class UserHandler {
                 .ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(responseBodyMono, ResponseBody.class);
+    }
+
+    public Mono<ServerResponse> all(ServerRequest request) {
+        return ServerResponse.ok().body(WebClient.create("http://localhost:8000")
+                .get()
+                .uri("/user")
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .retrieve()
+                .onStatus(HttpStatus::isError, error -> Mono.error(new ResponseStatusException(error.statusCode())))
+                .bodyToFlux(new ParameterizedTypeReference<ResponseBody<User>>() {})
+                .map(userResponseBody -> ResponseBody.ok(request.path(), userResponseBody.getData())), ResponseBody.class);
     }
 
     private <T> Mono<T> async(Callable<T> callable) {
