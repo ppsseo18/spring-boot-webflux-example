@@ -18,7 +18,7 @@ public class UserRouter {
     private UserHandler userHandler;
 
     @Bean
-    public RouterFunction<ServerResponse> route() {
+    public RouterFunction<ServerResponse> userRoutes() {
         return RouterFunctions.route(RequestPredicates.GET("/user/{userId}"), userHandler::get)
                 .andRoute(RequestPredicates.GET("/user").and(RequestPredicates.accept(MediaType.APPLICATION_JSON).or(RequestPredicates.accept(MediaType.TEXT_EVENT_STREAM))), userHandler::getAll)
                 .andRoute(RequestPredicates.POST("/user").and(RequestPredicates.accept(MediaType.APPLICATION_JSON)).and(RequestPredicates.contentType(MediaType.APPLICATION_JSON)), userHandler::post)
